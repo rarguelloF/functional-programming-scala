@@ -160,4 +160,40 @@ class FunSetSuite extends FunSuite {
     }
   }
 
+  test("forall works as expected") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+
+      val c1 = (x: Int) => (x % 1 == 0)
+      val c2 = (x: Int) => (x % 3 == 0)
+
+      assert(forall(s, c1), "forall divisible by 1")
+      assert(!forall(s, c2), "forall divisible by 3")
+    }
+  }
+
+  test("exists works as expected") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+
+      val c1 = (x: Int) => (x % 3 == 0)
+      val c2 = (x: Int) => (x == 98)
+
+      assert(exists(s, c1), "exists divisible by 3")
+      assert(!exists(s, c2), "exists 98")
+    }
+  }
+
+  test("map works as expected") {
+    new TestSets {
+      val s = map(union(union(s1, s2), s3), (x: Int) => x * 2)
+
+      assert(contains(s, 2), "map * 2 contains 2")
+      assert(contains(s, 4), "map * 2 contains 4")
+      assert(contains(s, 6), "map * 2 contains 6")
+      assert(!contains(s, 1), "map * 2 not contains 1")
+      assert(!contains(s, 3), "map * 2 not contains 3")
+    }
+  }
+
 }
