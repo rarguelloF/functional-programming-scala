@@ -133,4 +133,31 @@ class FunSetSuite extends FunSuite {
     }
   }
 
+  test("filter works as expected") {
+    new TestSets {
+      val us1 = union(s1, s2)
+      val us2 = union(s2, s3)
+      // contains 1,2,3
+      val us3 = union(us1, us2)
+
+      // contains only the odd numbers of the set
+      val fs1 = filter(us3, (x: Int) => x % 2 != 0)
+      assert(contains(fs1, 1), "Filter 1 odds")
+      assert(!contains(fs1, 2), "Filter 2 odds")
+      assert(contains(fs1, 3), "Filter 3 odds")
+
+      // contains only the pair numbers of the set
+      val fs2 = filter(us3, (x: Int) => x % 2 == 0)
+      assert(!contains(fs2, 1), "Filter 1 pairs")
+      assert(contains(fs2, 2), "Filter 2 pairs")
+      assert(!contains(fs2, 3), "Filter 3 pairs")
+
+      // contains only numbers divisible by 3
+      val fs3 = filter(us3, (x: Int) => x % 3 == 0)
+      assert(!contains(fs3, 1), "Filter 1 div by 3")
+      assert(!contains(fs3, 2), "Filter 2 div by 3")
+      assert(contains(fs3, 3), "Filter 3 div by 3")
+    }
+  }
+
 }
