@@ -54,9 +54,7 @@ abstract class TweetSet {
    * Question: Should we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-   def union(that: TweetSet): TweetSet = that.unionAcc(this)
-
-   def unionAcc(acc: TweetSet): TweetSet
+  def union(that: TweetSet): TweetSet
 
   /**
    * Returns the tweet from this set which has the greatest retweet count.
@@ -111,7 +109,7 @@ abstract class TweetSet {
 class Empty extends TweetSet {
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
 
-  def unionAcc(acc: TweetSet): TweetSet = acc
+  def union(that: TweetSet): TweetSet = that
 
   def mostRetweeted: Tweet = throw new java.util.NoSuchElementException("mostRetweeted Empty TweetSet")
 
@@ -137,10 +135,7 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     else this.left.filterAcc(p, this.right.filterAcc(p, acc))
   }
 
-  def unionAcc(acc: TweetSet): TweetSet = {
-    if (acc contains (this.elem)) this.left unionAcc (this.right unionAcc acc)
-    else this.left unionAcc (this.right unionAcc (acc.incl (this.elem)))
-  }
+  def union(that: TweetSet): TweetSet = left union (right union (that incl elem))
 
   def mostRetweeted: Tweet = {
     lazy val leftMostRetweeted = left.mostRetweeted
