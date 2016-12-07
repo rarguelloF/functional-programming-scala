@@ -34,6 +34,8 @@ class Tweet(val user: String, val text: String, val retweets: Int) {
  */
 abstract class TweetSet {
 
+  def isEmpty: Boolean
+
   /**
    * This method takes a predicate and returns a subset of all the elements
    * in the original set for which the predicate is true.
@@ -107,6 +109,9 @@ abstract class TweetSet {
 }
 
 class Empty extends TweetSet {
+
+  def isEmpty: Boolean = true
+
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
 
   def union(that: TweetSet): TweetSet = that
@@ -130,27 +135,32 @@ class Empty extends TweetSet {
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
+  def isEmpty: Boolean = false
+
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = {
-    if (p(this.elem)) this.left.filterAcc(p, this.right.filterAcc(p, acc.incl(this.elem)))
-    else this.left.filterAcc(p, this.right.filterAcc(p, acc))
+    if (p(elem)) left.filterAcc(p, right.filterAcc(p, acc.incl(elem)))
+    else left.filterAcc(p, right.filterAcc(p, acc))
   }
 
-  def union(that: TweetSet): TweetSet = left union (right union (that incl elem))
+  def union(that: TweetSet): TweetSet = {
+    if (that contains elem) left union (right union that)
+    else left union (right union (that.incl(elem)))
+  }
 
   def mostRetweeted: Tweet = {
-    lazy val leftMostRetweeted = left.mostRetweeted
-    lazy val rightMostRetweeted = right.mostRetweeted
+    lazy val leftMostRt = left.mostRetweeted
+    lazy val rightMostRt = right.mostRetweeted
 
-    if (left.isInstanceOf[NonEmpty] && leftMostRetweeted.retweets > this.elem.retweets) {
-      if (right.isInstanceOf[NonEmpty] && rightMostRetweeted.retweets > leftMostRetweeted.retweets) {
-        rightMostRetweeted
+    if (!left.isEmpty && leftMostRt.retweets > elem.retweets) {
+      if (!right.isEmpty && rightMostRt.retweets > leftMostRt.retweets) {
+        rightMostRt
       } else {
-        leftMostRetweeted
+        leftMostRt
       }
-    } else if (right.isInstanceOf[NonEmpty] && rightMostRetweeted.retweets > this.elem.retweets) {
-      rightMostRetweeted
+    } else if (!right.isEmpty && rightMostRt.retweets > elem.retweets) {
+      rightMostRt
     } else {
-      this.elem
+      elem
     }
   }
 
