@@ -205,27 +205,34 @@ object Huffman {
 
   type Bit = Int
 
+  case class InvalidBitException(message: String) extends Exception
   /**
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
-    def decodeAcc(accTree: CodeTree, accBits: List[Bit], accWord: List[Char]): List[Char] = {
-      tree match {
-        case Leaf(char, _) => decodeAcc(tree, accBits, accWord ::: List(char))
+    def decodeAcc(treeAcc: CodeTree, bitsAcc: List[Bit]): List[Char] = {
+      treeAcc match {
+        case Leaf(char, _) => {
+          bitsAcc match {
+            case List() => List(char)
+            case _ => List(char) ::: decodeAcc(tree, bitsAcc)
+          }
+        }
         case Fork(left, right, _, _) => {
-          bits match {
-            case List() => accWord
-            case bit :: tailBits => {
-              if (bit == 0) decodeAcc(left, tailBits, accWord)
-              else decodeAcc(right, tailBits, accWord)
+          bitsAcc match {
+            case List() => List()
+            case head :: tail => {
+              if (head == 1) decodeAcc(right, tail)
+              else if (head == 0) decodeAcc(left, tail)
+              else throw new InvalidBitException("valid bits values are 0 or 1")
             }
           }
         }
       }
     }
 
-    decodeAcc(tree, bits, List())
+    decodeAcc(tree, bits)
   }
 
   /**
@@ -253,7 +260,28 @@ object Huffman {
    * This function encodes `text` using the code tree `tree`
    * into a sequence of bits.
    */
-    def encode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+  case class InvalidTreeException(message: String) extends Exception
+
+  def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
+    def encodeChar(accTree: CodeTree, accBits: List[Bit], char: Char): List[Bit] = {
+      accTree match {
+        case Leaf(currentChar, _) => {
+          if (char == currentChar) accBits
+          else throw new InvalidTreeException("given tree is not valid to encode given text")
+        }
+        case Fork(left, right, _, _) => {
+          if (chars(left) contains char) encodeChar(left, accBits ::: List(0), char)
+          else if (chars(right) contains char) encodeChar(right, accBits ::: List(1), char)
+          else throw new InvalidTreeException("given tree is not valid to encode given text")
+        }
+      }
+    }
+
+    text match {
+      case List() => List()
+      case head :: tail => encodeChar(tree, List(), head) ::: encode(tree)(tail)
+    }
+  }
 
   // Part 4b: Encoding using code table
 
