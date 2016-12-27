@@ -109,14 +109,12 @@ object Huffman {
   def makeOrderedLeafListAcc(freqs: List[(Char, Int)], acc: List[Leaf]): List[Leaf] = {
     freqs match {
       case List() => acc
-      case headFreqs :: tailFreqs => {
+      case (char, freq) :: tailFreqs => {
         acc match {
-          case List() => makeOrderedLeafListAcc(tailFreqs, List(Leaf(headFreqs._1, headFreqs._2)))
-          case headAcc :: tailAcc => {
-            var newLeaf = List(Leaf(headFreqs._1, headFreqs._2))
-
-            if (headFreqs._2 > weight(headAcc)) makeOrderedLeafListAcc(tailFreqs, acc ::: newLeaf)
-            else makeOrderedLeafListAcc(tailFreqs, newLeaf ::: acc)
+          case List() => makeOrderedLeafListAcc(tailFreqs, List(Leaf(char, freq)))
+          case head :: tail => {
+            if (freq > weight(head)) makeOrderedLeafListAcc(tailFreqs, acc ::: List(Leaf(char, freq)))
+            else makeOrderedLeafListAcc(tailFreqs, List(Leaf(char, freq)) ::: acc)
           }
         }
       }
@@ -198,7 +196,8 @@ object Huffman {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-  def createCodeTree(chars: List[Char]): CodeTree = (until(singleton, combine)(makeOrderedLeafList(times(chars)))).head
+  def createCodeTree(chars: List[Char]): CodeTree =
+    (until(singleton, combine)(makeOrderedLeafList(times(chars)))).head
 
 
   // Part 3: Decoding
